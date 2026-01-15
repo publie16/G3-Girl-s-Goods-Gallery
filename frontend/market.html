@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Girls Goods Gallery - Market</title>
+    <link rel="stylesheet" href="./styles/landingPage.css">
+    <link rel="stylesheet" href="./styles/market.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <nav>
+        <div id="logo">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-box2-heart"
+                viewBox="0 0 16 16">
+                <path d="M8 7.982C9.664 6.309 13.825 9.236 8 13 2.175 9.236 6.336 6.31 8 7.982" />
+                <path
+                    d="M3.75 0a1 1 0 0 0-.8.4L.1 4.2a.5.5 0 0 0-.1.3V15a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V4.5a.5.5 0 0 0-.1-.3L13.05.4a1 1 0 0 0-.8-.4zm0 1H7.5v3h-6zM8.5 4V1h3.75l2.25 3zM15 5v10H1V5z" />
+            </svg>
+        </div>
+        <a href="index.html">HOME</a>
+        <a href="market.html" class="active">MARKET</a>
+        <a href="sell.html">SELL</a>
+    </nav>
+
+    <main class="market-container">
+        <header class="market-header">
+            <h1>Curated Finds</h1>
+            <p>Discover unique treasures from our community.</p>
+        </header>
+
+        <section id="product-grid" class="product-grid">
+            <!-- Products will be injected here by JS -->
+        </section>
+    </main>
+
+    <!-- Rent Modal -->
+    <div id="rent-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2>Rent this Item</h2>
+            <p>Connect with the seller to rent this item.</p>
+            <div class="form-group">
+                <label for="rent-days">Number of Days</label>
+                <input type="number" id="rent-days" min="1" value="3" placeholder="Duration">
+            </div>
+            <p class="terms">By clicking confirm, you agree to the seller's rental terms.</p>
+            <div class="modal-actions">
+                <button onclick="closeRentModal()" class="btn-cancel">Cancel</button>
+                <button onclick="confirmRent()" class="btn-confirm">Confirm Request</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Buy Modal -->
+    <div id="buy-modal" class="modal hidden">
+        <div class="modal-content" id="buy-modal-content">
+            <h2>Checkout</h2>
+            <p>Select your payment method:</p>
+
+            <div class="payment-options">
+                <label class="payment-option">
+                    <input type="radio" name="payment" value="COD">
+                    <span class="option-text">Cash on Delivery (COD)</span>
+                </label>
+                <label class="payment-option">
+                    <input type="radio" name="payment" value="UPI">
+                    <span class="option-text">UPI / Online Payment</span>
+                </label>
+            </div>
+
+            <div class="modal-actions">
+                <button onclick="closeBuyModal()" class="btn-cancel">Cancel</button>
+                <button onclick="confirmBuy()" class="btn-confirm">Confirm Order</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="./scripts/app.js"></script>
+</body>
+
+</html>
