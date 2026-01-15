@@ -1,40 +1,88 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="./styles/landingPage.css">
-    <title>Girls Goods Gallery</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="./styles/landingPage.css">
+  <title>Girls Goods Gallery</title>
+  <style>
+    .btn-auth {
+      display: inline-block;
+      padding: 12px 30px;
+      margin: 0 10px;
+      border-radius: 50px;
+      text-decoration: none;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      font-size: 1.1rem;
+    }
+
+    .btn-auth.login {
+      background: white;
+      color: #1c1437;
+      border: 2px solid white;
+    }
+
+    .btn-auth.signup {
+      background: transparent;
+      color: white;
+      border: 2px solid white;
+    }
+
+    .btn-auth:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-auth.login:hover {
+      background: #f0f0f0;
+    }
+
+    .btn-auth.signup:hover {
+      background: white;
+      color: #1c1437;
+    }
+  </style>
 </head>
+
 <body>
-    <nav>
+  <nav>
     <div id="logo">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-box2-heart" viewBox="0 0 16 16">
-            <path d="M8 7.982C9.664 6.309 13.825 9.236 8 13 2.175 9.236 6.336 6.31 8 7.982"/>
-            <path d="M3.75 0a1 1 0 0 0-.8.4L.1 4.2a.5.5 0 0 0-.1.3V15a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V4.5a.5.5 0 0 0-.1-.3L13.05.4a1 1 0 0 0-.8-.4zm0 1H7.5v3h-6zM8.5 4V1h3.75l2.25 3zM15 5v10H1V5z"/>
-        </svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-box2-heart"
+        viewBox="0 0 16 16">
+        <path d="M8 7.982C9.664 6.309 13.825 9.236 8 13 2.175 9.236 6.336 6.31 8 7.982" />
+        <path
+          d="M3.75 0a1 1 0 0 0-.8.4L.1 4.2a.5.5 0 0 0-.1.3V15a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V4.5a.5.5 0 0 0-.1-.3L13.05.4a1 1 0 0 0-.8-.4zm0 1H7.5v3h-6zM8.5 4V1h3.75l2.25 3zM15 5v10H1V5z" />
+      </svg>
     </div>
-    <a href="#">HOME</a>
-    <a href="#">MARKET</a>
-    <a href="#">RENT</a>
-    </nav>
-    <div class="scene">
-  <div class="cube">
-    <div class="face front"></div>
-    <div class="face back"></div>
-    <div class="face right"></div>
-    <div class="face left"></div>
-    <div class="face top"></div>
-    <div class="face bottom"></div>
-    <div class="cube-text">G3</div>
-  </div>
-  
+    <a href="index.html">HOME</a>
+    <a href="market.html">MARKET</a>
+    <a href="sell.html">SELL</a>
+  </nav>
+  <div class="scene">
+    <div class="cube">
+      <div class="face front"></div>
+      <div class="face back"></div>
+      <div class="face right"></div>
+      <div class="face left"></div>
+      <div class="face top"></div>
+      <div class="face bottom"></div>
+      <div class="cube-text">G3</div>
+    </div>
+
   </div>
   <div class="header">
     <h1>GIRL'S . GOODS . GALLERY</h1>
+    <div class="auth-buttons" style="margin-top: 20px; text-align: center;">
+      <a href="login.html" class="btn-auth login">Login</a>
+      <a href="login.html" class="btn-auth signup">Signup</a>
+    </div>
   </div>
 
 
 
 </body>
+
 </html>

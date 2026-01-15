@@ -25,12 +25,39 @@
         <a href="index.html">HOME</a>
         <a href="market.html" class="active">MARKET</a>
         <a href="sell.html">SELL</a>
+        <a href="#" onclick="toggleCart()">CART 🛒</a>
     </nav>
 
     <main class="market-container">
         <header class="market-header">
             <h1>Curated Finds</h1>
             <p>Discover unique treasures from our community.</p>
+
+            <!-- Top Filter Bar -->
+            <div class="filter-bar-container">
+                <div class="filter-bar">
+                    <!-- Search -->
+                    <div class="search-section">
+                        <div class="search-box">
+                            <input type="text" id="search-input" placeholder="Search for dresses, books, jewelry...">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                class="bi bi-search" viewBox="0 0 16 16">
+                                <path
+                                    d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Categories as Buttons (Clean Look) -->
+                    <div class="category-pills">
+                        <button class="cat-btn active" data-category="all">All</button>
+                        <button class="cat-btn" data-category="Clothes">Clothes</button>
+                        <button class="cat-btn" data-category="Accessories">Accessories</button>
+                        <button class="cat-btn" data-category="Books">Books</button>
+                        <button class="cat-btn" data-category="Electronics">Electronics</button>
+                    </div>
+                </div>
+            </div>
         </header>
 
         <section id="product-grid" class="product-grid">
@@ -75,6 +102,21 @@
             <div class="modal-actions">
                 <button onclick="closeBuyModal()" class="btn-cancel">Cancel</button>
                 <button onclick="confirmBuy()" class="btn-confirm">Confirm Order</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cart Modal -->
+    <div id="cart-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2>Your Cart 🛍️</h2>
+            <div id="cart-items-container" style="max-height: 300px; overflow-y: auto; margin: 15px 0;">
+                <!-- Items go here -->
+                <p>Cart is empty.</p>
+            </div>
+            <div class="modal-actions">
+                <button onclick="toggleCart()" class="btn-cancel">Close</button>
+                <button class="btn-confirm">Checkout All</button>
             </div>
         </div>
     </div>
