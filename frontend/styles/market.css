@@ -8,6 +8,7 @@ body {
     background-repeat: repeat;
     background-attachment: fixed;
     min-height: 100vh;
+    animation: none;
 }
 
 .market-container {

@@ -1,43 +1,78 @@
+/* Body */
 body{
-    background-color: rgb(245, 219, 253);
+    background: linear-gradient(120deg, #f0cfed, #fff0f5);
     font-family: Arial, Helvetica, sans-serif;
     margin:0;
+    overflow-x: hidden;
+    animation: backgroundShift 15s ease infinite;
 }
 
+/* Nav */
 nav{
     display: flex;     
     justify-content: flex-start;
     align-items: center;
     gap: 24px;   
-    padding: 8px;
-    background-color: rgb(255, 255, 255);
+    padding: 12px 24px;
+    background-color: rgba(255, 255, 255, 0.95);
     font-size: small;
     box-shadow:  0 4px 12px rgba(0, 0, 0, 0.08);
+    position: sticky;
+    top: 0;
+    z-index: 100;
 }
+
 a{
-    text-decoration: none;   /* remove underline */
-    color: black;  
+    position: relative;
+    text-decoration: none;
+    color: #1c1437;
+    font-weight: 500;
+    transition: color 0.3s ease, transform 0.3s ease;
 }
+
+/* underline */
+a::after{
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -4px;
+    width: 0;
+    height: 2px;
+    background-color: #b20b64;
+    transition: width 0.3s ease;
+}
+
+a:hover{
+    color: #b20b64;
+    transform: translateY(-2px);
+}
+
+a:hover::after{
+    width: 100%;
+}
+
+
+/* Logo */
 #logo{
     margin-left: 12px;
 }
 
-
+/* Scene and Cube */
 .scene {
     display: flex;
     align-items: center;
     width: 97vw;            
-    height: 30vh;   
-    perspective: 600px;
+    height: 35vh;   
+    perspective: 700px;
+    margin-bottom: 40px;
 }
 
 .cube {
-    display: flex;
-    width: 80px;
-    height: 80px;
+    width: 100px;
+    height: 100px;
     position: relative;
     transform-style: preserve-3d;
-    animation: spin 6s linear infinite;
+    animation: spin 8s linear infinite;
     margin: auto;
 }
 
@@ -45,57 +80,57 @@ a{
     position: absolute;
     top: 50%;
     left: 50%;
-    font-size: 30px;
+    font-size: 36px;
     font-weight: bold;
     color: #ffffff;
     pointer-events: none;
     z-index: 10;
-    font-family: Arial, Helvetica, sans-serif;
+    font-family:Georgia, 'Times New Roman', Times, serif;
     text-shadow:
         0 0 5px #b20b64cf,
-        0 0 10px #884288;
-
-    animation: counterSpin 6s linear infinite;
+        0 0 10px #884288,
+        0 0 20px #ff69b4;
+    animation: counterSpin 8s linear infinite;
 }
 
-@keyframes counterSpin {
-    from {
-        transform: translate(-50%, -50%) rotateX(0deg);
-    }
-    to {
-        transform: translate(-50%, -50%) rotateY(-360deg);
-    }
-}
-
-
+/* Cube Faces */
 .face {
     position: absolute;
-    width: 80px;
-    height: 80px;
+    width: 100px;
+    height: 100px;
     border: 2px solid #1c1437;
-    background: rgba(246, 202, 235, 0);
+    background: rgba(246, 202, 235, 0.1);
+    box-shadow: 0 0 10px rgba(178, 11, 100, 0.4);
 }
 
 /* Faces */
-.front  { transform: rotateY(0deg) translateZ(40px); }
-.back   { transform: rotateY(180deg) translateZ(40px); }
-.right  { transform: rotateY(90deg) translateZ(40px); }
-.left   { transform: rotateY(-90deg) translateZ(40px); }
-.top    { transform: rotateX(90deg) translateZ(40px); }
-.bottom { transform: rotateX(-90deg) translateZ(40px); }
+.front  { transform: rotateY(0deg) translateZ(50px); }
+.back   { transform: rotateY(180deg) translateZ(50px); }
+.right  { transform: rotateY(90deg) translateZ(50px); }
+.left   { transform: rotateY(-90deg) translateZ(50px); }
+.top    { transform: rotateX(90deg) translateZ(50px); }
+.bottom { transform: rotateX(-90deg) translateZ(50px); }
 
-/* Animation */
+/* Animations */
 @keyframes spin {
-    from {
-        transform: rotateY(0deg);
-    }
-    to {
-        transform:rotateY(360deg);
-    }
+    from { transform: rotateY(0deg); }
+    to   { transform: rotateY(360deg); }
 }
 
+@keyframes counterSpin {
+    from { transform: translate(-50%, -50%) rotateX(0deg); }
+    to   { transform: translate(-50%, -50%) rotateY(-360deg); }
+}
+
+@keyframes backgroundShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Header */
 .header {
-    font-size: 40px;
+    font-size: 42px;
     text-align: center;
     font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
     color:white;
@@ -104,4 +139,60 @@ a{
         0 0 10px #ca76ca,
         0 0 20px #af4d61,
         0 0 40px #ff69b4;
+    animation: fadeInHeader 2s ease forwards;
+    opacity: 0;
+}
+
+@keyframes fadeInHeader {
+    to { opacity: 1; }
+}
+
+/* Buttons */
+.btn-auth {
+    display: inline-block;
+    padding: 12px 30px;
+    margin: 0 10px;
+    border-radius: 50px;
+    text-decoration: none;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    font-size: 1.1rem;
+}
+
+.btn-auth.login {
+    background: white;
+    color: #1c1437;
+    border: 2px solid white;
+}
+
+.btn-auth.signup {
+    background: transparent;
+    color: rgb(50, 28, 66);
+    border: 2px solid white;
+}
+
+.btn-auth:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.btn-auth.login:hover {
+    background: #f0f0f0;
+}
+
+.btn-auth.signup:hover {
+    background: white;
+    color: #1c1437;
+}
+a {
+    text-decoration: none;
+    outline: none;
+    border: none;
+}
+
+a:focus,
+a:active {
+    outline: none;
+    box-shadow: none;
 }

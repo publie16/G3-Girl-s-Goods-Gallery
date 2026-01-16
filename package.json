@@ -1,0 +1,27 @@
+{
+  "name": "g3",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/publie16/G3-Girl-s-Goods-Gallery.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/publie16/G3-Girl-s-Goods-Gallery/issues"
+  },
+  "homepage": "https://github.com/publie16/G3-Girl-s-Goods-Gallery#readme",
+  "dependencies": {
+    "ejs": "^4.0.1",
+    "express": "^5.2.1",
+    "express-session": "^1.18.2",
+    "nodemon": "^3.1.11"
+  }
+}

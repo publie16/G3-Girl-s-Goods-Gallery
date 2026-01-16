@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Girls Goods Gallery</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="/styles/landingPage.css">
+    <link rel="stylesheet" href="/styles/sell.css">
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            background: url('/images/bg.png'),
+                linear-gradient(135deg, #fdfbfd 0%, #f5dbfd 100%);
+            background-blend-mode: overlay;
+            background-size: 500px;
+            background-repeat: repeat;
+        }
+
+        .signup-btn {
+            background: linear-gradient(135deg, #d63384 0%, #9c27b0 100%);
+            color: white;
+            font-size: 1.1rem;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <nav>
+        <div id="logo">G3</div>
+        <a href="/">HOME</a>
+    </nav>
+
+    <!-- SIGNUP FORM -->
+    <main class="sell-container">
+        <div class="glass-form">
+            <h2>Create Your G3 Account</h2>
+            <p style="text-align: center; color: #666; margin-bottom: 30px;">
+                Join the exclusive girls marketplace
+            </p>
+
+            <!-- 🔴 BACKEND CONNECTED FORM -->
+            <form action="/signup" method="POST">
+
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" name="name" placeholder="e.g. Diya Sharma" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Email / Phone</label>
+                    <input type="text" name="email" placeholder="e.g. diya@gmail.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" name="password" placeholder="Create password" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="tel" name="phone" placeholder="9876543210" pattern="[0-9]{10}" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Hostel Room No.</label>
+                    <input type="text" name="room" placeholder="e.g. 204" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Block Name</label>
+                    <div style="display: flex; gap: 20px; margin-top: 5px;">
+                        <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;">
+                            <input type="radio" name="block" value="B" required> Block B
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;">
+                            <input type="radio" name="block" value="C"> Block C
+                        </label>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn signup-btn">
+                    Create Account
+                </button>
+            </form>
+
+            <p style="text-align:center; margin-top:20px;">
+                Already have an account?
+                <a href="/" style="color:#9c27b0; font-weight:600;">
+                    Login
+                </a>
+            </p>
+
+        </div>
+    </main>
+
+</body>
+</html>
