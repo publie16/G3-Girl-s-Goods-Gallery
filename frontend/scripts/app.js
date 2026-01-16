@@ -1,66 +1,40 @@
 
-const initialProducts = [
-    // 1. Jewelry (Accessories)
-    { id: 1, name: "Rose Quartz Necklace", price: 450, description: "Delicate handmade necklace.", image: "./images/jewelry.png", category: "Accessories", sold: false },
-
-    // 2. Jacket (Clothes)
-    { id: 2, name: "Vintage Floral Jacket", price: 1200, description: "Custom embroidered denim.", image: "./images/jacket.png", category: "Clothes", sold: false },
-
-    // 3. Art (Electronics/Decor - mapped to Books/Decor in UI maybe, or just keep category)
-    { id: 3, name: "Pastel Abstract Art", price: 300, description: "Framed print for dorm walls.", image: "./images/art.png", category: "Books", sold: false },
-
-    // 4. Books (Rented Demo)
-    {
-        id: 4,
-        name: "Psychology Textbook",
-        price: 400,
-        description: "Introduction to Psychology, 1st Year.",
-        image: "./images/books.png",
-        category: "Books",
-        sold: false,
-        rented: true,
-        rentedTill: "18 Jan"
-    },
-
-    // 5. Electronics (New Image)
-    { id: 5, name: "Pastel Headphones", price: 1500, description: "Wireless, noise cancelling, pink.", image: "./images/headphones.png", category: "Electronics", sold: false },
-
-    // 6. Reuse Jewelry (Different Item)
-    { id: 6, name: "Silver Hoops", price: 200, description: "Classic sterling silver hoops.", image: "./images/jewelry.png", category: "Accessories", sold: false }
-];
-
 // --- State Management ---
 let currentFilters = {
     category: 'all',
     search: ''
 };
 
-function getProducts() {
-    const stored = localStorage.getItem('products');
-    if (stored) {
-        return JSON.parse(stored);
+let allProducts = []; // Local cache of products fetched from DB
+
+async function fetchProducts() {
+    try {
+        const res = await fetch('/api/products');
+        allProducts = await res.json();
+    } catch (err) {
+        console.error("Failed to fetch products", err);
     }
-    localStorage.setItem('products', JSON.stringify(initialProducts));
-    return initialProducts;
 }
 
-function saveProducts(products) {
-    localStorage.setItem('products', JSON.stringify(products));
+async function saveProduct(product) {
+    try {
+        await fetch('/api/products', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(product)
+        });
+    } catch (err) {
+        console.error("Failed to save product", err);
+    }
 }
 
-function saveProduct(product) {
-    const products = getProducts();
-    products.push(product);
-    saveProducts(products);
-}
-
-function markAsSold(productId) {
-    const products = getProducts();
-    const product = products.find(p => p.id === productId);
-    if (product) {
-        product.sold = true;
-        saveProducts(products);
+async function markAsSold(productId) {
+    try {
+        await fetch(`/api/products/${productId}/sold`, { method: 'PATCH' });
+        await fetchProducts(); // Refresh data
         renderMarket();
+    } catch (err) {
+        console.error("Failed to mark as sold", err);
     }
 }
 
@@ -76,17 +50,20 @@ function filterProducts(products) {
             return false;
         }
         return true;
-    }).reverse(); // Show newest first by default
+    }); // No need to reverse here if backend sorts or if we want to keep backend order
 }
 
 // --- Render Logic ---
-// --- Render Logic ---
-function renderMarket() {
+async function renderMarket() {
     const grid = document.getElementById('product-grid');
     if (!grid) return;
 
-    let products = getProducts();
-    products = filterProducts(products);
+    // Reload matches the latest state
+    if (allProducts.length === 0) {
+        await fetchProducts();
+    }
+
+    let products = filterProducts(allProducts);
 
     if (products.length === 0) {
         grid.innerHTML = '<div class="no-results">No products found.</div>';
@@ -105,13 +82,15 @@ function renderMarket() {
         } else if (product.sold) {
             actionButtons = `<div class="sold-badge">Item Sold</div>`;
         } else {
+            // Using product._id for MongoDB documents
+            const id = product._id;
             actionButtons = `
-                <button onclick="addToCart(${product.id})" class="btn btn-cart">
+                <button onclick="addToCart('${id}')" class="btn btn-cart">
                     Add
                 </button>
                 <div class="action-row">
-                    <button onclick="openRentModal(${product.id})" class="btn-rent">Rent</button>
-                    <button onclick="openBuyModal(${product.id})" class="btn btn-buy">Buy</button>
+                    <button onclick="openRentModal('${id}')" class="btn-rent">Rent</button>
+                    <button onclick="openBuyModal('${id}')" class="btn btn-buy">Buy</button>
                 </div>
              `;
         }
@@ -120,7 +99,7 @@ function renderMarket() {
         <article class="product-card ${product.sold ? 'sold-item' : ''}">
             <div class="image-wrapper">
                 <img src="${product.image}" alt="${product.name}" class="card-image">
-                <div class="wishlist-icon" onclick="toggleWishlist(this, ${product.id})">
+                <div class="wishlist-icon" onclick="toggleWishlist(this, '${product._id}')">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-heart" viewBox="0 0 16 16">
                         <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.281 9.6 2.011L8 2.748zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143c.06.055.119.112.176.171a3.12 3.12 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15z"/>
                     </svg>
@@ -181,14 +160,9 @@ function initFilters() {
 
 // --- Auth Check ---
 function checkAuth() {
-    const path = window.location.pathname;
-    // Simple bypass for development comfort if needed, but keeping strict for now
-    if (path.includes('market.html') || path.includes('sell.html')) {
-        const user = localStorage.getItem('g3_user');
-        if (!user) {
-            window.location.href = 'login.html';
-        }
-    }
+    // Session is handled by server redirects mostly now, but keeping this for robustness if needed
+    // or we can remove if we trust server-side redirects fully.
+    // For now, let's trust the server-side redirects on /market and page loads.
 }
 
 
@@ -207,12 +181,12 @@ window.openEnquiry = function (productName) {
 let cart = [];
 
 window.addToCart = function (id) {
-    const products = getProducts();
-    const product = products.find(p => p.id === id);
+    // IMPORTANT: id is passed as string now (MongoDB _id)
+    const product = allProducts.find(p => p._id === id || p.id === id); // Handle legacy ID if needed
     if (!product) return;
 
     // Check duplication
-    if (!cart.find(p => p.id === id)) {
+    if (!cart.find(p => p._id === product._id)) {
         cart.push(product);
         updateCartModal();
 
@@ -278,9 +252,9 @@ window.closeBuyModal = function () {
     document.getElementById('buy-modal').classList.add('hidden');
     currentBuyId = null;
 }
-window.confirmBuy = function () {
+window.confirmBuy = async function () {
     if (currentBuyId) {
-        markAsSold(currentBuyId);
+        await markAsSold(currentBuyId);
         closeBuyModal();
     }
 }
@@ -299,11 +273,15 @@ function initSellPage() {
     const preview = document.getElementById('image-preview');
     const uploadText = document.getElementById('upload-text');
 
+    // Store base64 image string
+    let currentImageBase64 = "";
+
     fileInput.addEventListener('change', function (e) {
         const file = e.target.files[0];
         if (file) {
             const reader = new FileReader();
             reader.onload = function (event) {
+                currentImageBase64 = event.target.result;
                 preview.style.backgroundImage = `url(${event.target.result})`;
                 preview.classList.remove('hidden');
                 uploadText.textContent = "Change";
@@ -312,22 +290,42 @@ function initSellPage() {
         }
     });
 
-    form.addEventListener('submit', function (e) {
+    form.addEventListener('submit', async function (e) {
         e.preventDefault();
-        // ... simplified submission for brevity ... 
+
+        // Simple form data gathering
+        const name = document.getElementById('product-name').value;
+        const price = document.getElementById('product-price').value;
+        const category = document.getElementById('product-category').value;
+        const description = document.getElementById('product-desc').value;
+
+        // Construct product object
+        const product = {
+            name,
+            price,
+            category,
+            description,
+            image: currentImageBase64 || './images/fast-fashion.jpeg', // Default or uploaded
+            sold: false
+        };
+
+        if (!name || !price) {
+            alert("Please fill required fields (Name, Price)");
+            return;
+        }
+
+        await saveProduct(product);
         alert("Posted!");
-        window.location.href = 'market.html';
+        window.location.href = 'market.html'; // Assuming market.html is served at /market route in browser usually, but with EJS it's just /market
+        // If SPA navigation isn't set up, full reload to /market:
+        window.location.href = '/market';
     });
 }
 
 // Initialize
-document.addEventListener('DOMContentLoaded', () => {
-    checkAuth();
-    // Clear old data to show new seeded data
-    const existing = JSON.parse(localStorage.getItem('products') || '[]');
-    if (existing.length < 5) {
-        localStorage.removeItem('products');
-    }
+document.addEventListener('DOMContentLoaded', async () => {
+    // Fetch real data from API
+    await fetchProducts();
 
     renderMarket();
     initFilters();

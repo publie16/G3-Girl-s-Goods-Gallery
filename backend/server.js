@@ -1,10 +1,15 @@
 const express = require("express");
 const path = require("path");
 const session = require("express-session");
-const users = require("./users");
+const connectDB = require("./db");
+const User = require("./models/User");
+const Product = require("./models/Product");
 
 const app = express();
 const PORT = 3000;
+
+// Connect to Database
+connectDB();
 
 // ========= MIDDLEWARE =========
 app.use(express.urlencoded({ extended: true }));
@@ -37,39 +42,49 @@ app.get("/signup", (req, res) => {
 });
 
 // Handle signup
-app.post("/signup", (req, res) => {
+app.post("/signup", async (req, res) => {
   const { name, email, password, phone, room, block } = req.body;
 
-  const exists = users.find(u => u.email === email);
-  if (exists) {
-    return res.send("User already exists");
+  try {
+    const exists = await User.findOne({ email });
+    if (exists) {
+      return res.send("User already exists");
+    }
+
+    const newUser = new User({ name, email, password, phone, room, block });
+    await newUser.save();
+
+    console.log("New user created:", newUser);
+    res.redirect("/login");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Server Error");
   }
-
-  users.push({ name, email, password, phone, room, block });
-  console.log("Current users:", users);
-
-  res.redirect("/login");
 });
 
 // Handle login
-app.post("/login", (req, res) => {
+app.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
-  const user = users.find(
-    u => u.email === email && u.password === password
-  );
+  try {
+    const user = await User.findOne({ email, password });
 
-  if (!user) {
-    return res.send("Invalid credentials");
+    if (!user) {
+      return res.send("Invalid credentials");
+    }
+
+    // ✅ SAVE USER IN SESSION
+    req.session.user = {
+      name: user.name,
+      id: user._id
+    };
+
+    // ✅ REDIRECT TO MARKET
+    res.redirect("/market");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Server Error");
   }
-
-  // ✅ SAVE USER IN SESSION
-  req.session.user = {
-    name: user.name
-  };
-
-  // ✅ REDIRECT TO MARKET
-  res.redirect("/market");
 });
 
 // Market page
@@ -81,6 +96,39 @@ app.get("/market", (req, res) => {
   res.render("market.ejs", {
     name: req.session.user.name
   });
+});
+
+/* ========= API ROUTES FOR PRODUCTS ========= */
+
+// Get all products
+app.get("/api/products", async (req, res) => {
+  try {
+    const products = await Product.find().sort({ _id: -1 }); // Newest first
+    res.json(products);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch products" });
+  }
+});
+
+// Create product
+app.post("/api/products", async (req, res) => {
+  try {
+    const newProduct = new Product(req.body);
+    await newProduct.save();
+    res.json(newProduct);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to save product" });
+  }
+});
+
+// Update product (Mark as Sold)
+app.patch("/api/products/:id/sold", async (req, res) => {
+  try {
+    const product = await Product.findByIdAndUpdate(req.params.id, { sold: true }, { new: true });
+    res.json(product);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to update product" });
+  }
 });
 
 // ========= START SERVER =========
