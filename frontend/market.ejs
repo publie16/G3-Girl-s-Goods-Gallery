@@ -15,8 +15,8 @@
 <body>
     <nav>
         <div id="logo">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
-                class="bi bi-box2-heart" viewBox="0 0 16 16">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-box2-heart"
+                viewBox="0 0 16 16">
                 <path d="M8 7.982C9.664 6.309 13.825 9.236 8 13 2.175 9.236 6.336 6.31 8 7.982" />
                 <path
                     d="M3.75 0a1 1 0 0 0-.8.4L.1 4.2a.5.5 0 0 0-.1.3V15a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V4.5a.5.5 0 0 0-.1-.3L13.05.4a1 1 0 0 0-.8-.4zm0 1H7.5v3h-6zM8.5 4V1h3.75l2.25 3zM15 5v10H1V5z" />
@@ -25,26 +25,28 @@
 
         <a href="/">HOME</a>
         <a href="/market" class="active">MARKET</a>
+        <a href="/messages">MESSAGES 💬</a>
         <a href="/sell">SELL</a>
         <a href="#" onclick="toggleCart()">CART 🛒</a>
 
         <!-- ✅ USER NAME DISPLAY -->
-        <span class="user-profile" style="margin-left:auto; margin-top: 0%; color:rgb(0, 0, 0)" >
-    <%= name %>
-    <svg xmlns="http://www.w3.org/2000/svg"
-         width="20"
-         height="20"
-         viewBox="0 0 24 24"
-         fill="none"
-         stroke="currentColor"
-         stroke-width="2"
-         stroke-linecap="round"
-         stroke-linejoin="round"
-         class="profile-icon">
-        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-        <circle cx="12" cy="7" r="4"/>
-    </svg>
-</span>
+        <!-- ✅ USER PROFILE DROPDOWN -->
+        <div class="user-profile" style="margin-left:auto; margin-top: 0%; color:rgb(0, 0, 0)">
+            <span>
+                <%= name %> (Block <%= block %>, Room <%= room %>)
+            </span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+            </svg>
+
+            <div class="dropdown-menu">
+                <a href="#" class="dropdown-item">My Profile</a>
+                <a href="/sell" class="dropdown-item">Sell Item</a>
+                <a href="/" class="dropdown-item" style="color:#d63384;">Logout</a>
+            </div>
+        </div>
 
     </nav>
 
@@ -57,17 +59,17 @@
                 <div class="filter-bar">
                     <div class="search-section">
                         <div class="search-box">
-                            <input type="text" id="search-input"
-                                placeholder="Search for dresses, books, jewelry...">
+                            <input type="text" id="search-input" placeholder="Search for dresses, books, jewelry...">
                         </div>
                     </div>
 
                     <div class="category-pills">
                         <button class="cat-btn active" data-category="all">All</button>
-                        <button class="cat-btn" data-category="Clothes">Clothes</button>
-                        <button class="cat-btn" data-category="Accessories">Accessories</button>
-                        <button class="cat-btn" data-category="Books">Books</button>
+                        <button class="cat-btn" data-category="Clothing">Clothing</button>
+                        <button class="cat-btn" data-category="Food">Food</button>
+                        <button class="cat-btn" data-category="Personal Care">Personal Care</button>
                         <button class="cat-btn" data-category="Electronics">Electronics</button>
+                        <button class="cat-btn" data-category="Pre-Loved">Pre-Loved</button>
                     </div>
                 </div>
             </div>
@@ -78,9 +80,108 @@
         </section>
     </main>
 
-    <!-- Modals stay unchanged -->
+    <!-- MODALS -->
+
+    <!-- Cart Modal -->
+    <div id="cart-modal" class="modal hidden">
+        <div class="modal-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h2>Your Cart</h2>
+                <span onclick="toggleCart()" style="cursor:pointer; font-size:1.5rem;">&times;</span>
+            </div>
+            <div id="cart-items-container">
+                <!-- Items injected by JS -->
+            </div>
+            <button class="btn btn-confirm" style="width:100%; margin-top:20px;">Proceed to Checkout</button>
+        </div>
+    </div>
+
+    <!-- Rent Modal -->
+    <div id="rent-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2>Rent Item</h2>
+            <p>Select duration for rental:</p>
+            <div class="form-group">
+                <label>Days</label>
+                <select id="rent-days" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd;">
+                    <option value="3">3 Days (₹150)</option>
+                    <option value="7">7 Days (₹300)</option>
+                    <option value="30">30 Days (₹800)</option>
+                </select>
+            </div>
+            <div class="modal-actions">
+                <button onclick="confirmRent()" class="btn-confirm">Confirm Rent</button>
+                <button onclick="closeRentModal()" class="btn-cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Buy Modal -->
+    <div id="buy-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2>Buy Item</h2>
+            <p>How would you like to pay?</p>
+            <div class="payment-options">
+                <div class="payment-option">
+                    <span>💵</span> Cash on Delivery
+                </div>
+                <div class="payment-option">
+                    <span>📱</span> UPI / GPay
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button onclick="confirmBuy()" class="btn-confirm">Place Order</button>
+                <button onclick="closeBuyModal()" class="btn-cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Message Modal -->
+    <div id="message-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2 id="msg-modal-title">Send Message to Seller</h2>
+            <div class="form-group" style="margin-top:15px;">
+                <label>Your Message</label>
+                <textarea id="msg-content" rows="4"
+                    style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd;"></textarea>
+            </div>
+            <div class="modal-actions">
+                <button onclick="confirmSendMessage()" class="btn-confirm">Send</button>
+                <button onclick="closeMessageModal()" class="btn-cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="edit-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2>Edit Product</h2>
+            <div class="form-group">
+                <label>New Price (₹)</label>
+                <input type="number" id="edit-price"
+                    style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd;">
+            </div>
+            <div class="form-group">
+                <label>Update Description</label>
+                <textarea id="edit-desc" rows="3"
+                    style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd;"></textarea>
+            </div>
+            <div class="modal-actions">
+                <button onclick="confirmEdit()" class="btn-confirm">Save Changes</button>
+                <button onclick="closeEditModal()" class="btn-cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
 
     <script src="./scripts/app.js"></script>
+    <script>
+        // Inject user info for JS access
+        window.currentUser = {
+            name: "<%= name %>",
+            block: "<%= block %>",
+            room: "<%= room %>"
+        };
+    </script>
 </body>
 
 </html>

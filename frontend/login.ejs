@@ -57,7 +57,14 @@
 
                 <div class="form-group">
                     <label>Password</label>
-                    <input type="password" name="password" placeholder="Enter password" required>
+                    <div style="position:relative;">
+                        <input type="password" name="password" id="password" placeholder="Enter password" required
+                            style="width:100%; padding-right:40px;">
+                        <span onclick="togglePassword()"
+                            style="position:absolute; right:12px; top:28%; cursor:pointer; font-size:1.2rem;">
+                            👁️
+                        </span>
+                    </div>
                 </div>
 
                 <button type="submit" class="submit-btn login-btn">
@@ -75,5 +82,14 @@
         </div>
     </main>
 
+    <script>
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+        }
+    </script>
+
 </body>
+
 </html>

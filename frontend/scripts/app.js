@@ -7,24 +7,43 @@ let currentFilters = {
 
 let allProducts = []; // Local cache of products fetched from DB
 
+let wishlist = [];
+
 async function fetchProducts() {
     try {
         const res = await fetch('/api/products');
         allProducts = await res.json();
+
+        const wishRes = await fetch('/api/user/wishlist');
+        wishlist = await wishRes.json();
+
+        // Fetch current user if not already set (e.g. on market.ejs it's injected, on sell.html we fetch)
+        if (!window.currentUser) {
+            const userRes = await fetch('/api/user/me');
+            if (userRes.ok) {
+                window.currentUser = await userRes.json();
+            }
+        }
     } catch (err) {
-        console.error("Failed to fetch products", err);
+        console.error("Failed to fetch data", err);
     }
 }
 
 async function saveProduct(product) {
     try {
-        await fetch('/api/products', {
+        const response = await fetch('/api/products', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(product)
         });
+        if (!response.ok) {
+            const data = await response.json();
+            throw new Error(data.error || "Failed to save product");
+        }
+        return await response.json();
     } catch (err) {
         console.error("Failed to save product", err);
+        throw err;
     }
 }
 
@@ -71,35 +90,41 @@ async function renderMarket() {
     }
 
     grid.innerHTML = products.map(product => {
-        // Rented Logic
+        const isWished = wishlist.includes(product._id);
+        const sellerInfo = product.seller ? `
+            <div class="seller-badge" style="font-size: 0.8rem; background: #f0f0f0; padding: 5px 10px; border-radius: 20px; margin-bottom: 10px; display: inline-block;">
+                👤 ${product.seller.name} (${product.seller.hostel || 'Block ?'}, Room ${product.seller.room || '?'})
+            </div>
+        ` : '';
+
+        // Check if current user is the seller
+        const isOwner = window.currentUser && window.currentUser.name === product.seller?.name;
+
+        // Action Buttons based on Mode
         let actionButtons = '';
-        if (product.rented) {
-            actionButtons = `
-                <div class="rent-timer-badge">
-                    <span>⏳ Rented till: ${product.rentedTill}</span>
-                </div>
-            `;
-        } else if (product.sold) {
-            actionButtons = `<div class="sold-badge">Item Sold</div>`;
+        if (product.sold) {
+            actionButtons = `<div class="sold-badge" style="color: red; font-weight: bold; text-align: center; padding: 10px;">ITEM SOLD</div>`;
         } else {
-            // Using product._id for MongoDB documents
             const id = product._id;
+            const mode = product.mode || 'buy';
+            let mainBtnText = mode.charAt(0).toUpperCase() + mode.slice(1);
+            let mainBtnClass = mode === 'buy' ? 'btn-buy' : (mode === 'rent' ? 'btn-rent' : 'btn-borrow');
+
             actionButtons = `
-                <button onclick="addToCart('${id}')" class="btn btn-cart">
-                    Add
-                </button>
-                <div class="action-row">
-                    <button onclick="openRentModal('${id}')" class="btn-rent">Rent</button>
-                    <button onclick="openBuyModal('${id}')" class="btn btn-buy">Buy</button>
+                ${isOwner ? `<button onclick="openEditModal('${id}', ${product.price}, '${product.description?.replace(/'/g, "\\'")}')" class="btn btn-cart" style="margin-bottom:8px; border-color:#d63384; color:#d63384;">Edit Price</button>` : ''}
+                <div class="action-row" style="margin-bottom:8px;">
+                     <button onclick="addToCart('${id}')" class="btn btn-cart" style="flex:1;">Add to Cart</button>
+                     <button onclick="openMessageModal('${id}', '${product.seller?.name}')" class="btn-rent" style="flex:1; background:#e0f7fa; border:1px solid #00acc1; color:#006064;">Chat</button>
                 </div>
-             `;
+                <button onclick="openConfirmModal('${id}', '${mode}')" class="btn ${mainBtnClass}" style="width:100%; border-radius:12px; font-weight:bold; height:45px;">${mainBtnText} Now</button>
+            `;
         }
 
         return `
         <article class="product-card ${product.sold ? 'sold-item' : ''}">
             <div class="image-wrapper">
                 <img src="${product.image}" alt="${product.name}" class="card-image">
-                <div class="wishlist-icon" onclick="toggleWishlist(this, '${product._id}')">
+                <div class="wishlist-icon ${isWished ? 'active' : ''}" onclick="toggleWishlist(this, '${product._id}')">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-heart" viewBox="0 0 16 16">
                         <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.281 9.6 2.011L8 2.748zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143c.06.055.119.112.176.171a3.12 3.12 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15z"/>
                     </svg>
@@ -108,15 +133,12 @@ async function renderMarket() {
             <div class="card-content">
                 <div class="card-meta">
                     <span class="category-tag">${product.category || 'General'}</span>
+                    <span class="mode-tag" style="float: right; font-size: 0.7rem; background: #ffecf2; color: #d63384; padding: 2px 6px; border-radius: 4px; font-weight: bold; text-transform: uppercase;">${product.mode}</span>
                 </div>
                 <h3 class="card-title">${product.name}</h3>
                 <div class="card-price">₹${Number(product.price).toLocaleString('en-IN')}</div>
-                
-                <!-- Enquiry Button -->
-                <button onclick="openEnquiry('${product.name}')" class="btn-enquiry">
-                    💬 Is this available?
-                </button>
-
+                <div class="card-desc" style="font-size: 0.85rem; color: #666; height: 40px; overflow: hidden; margin-bottom: 10px;">${product.description || ''}</div>
+                ${sellerInfo}
                 <div class="card-actions-container">
                     ${actionButtons}
                 </div>
@@ -178,7 +200,7 @@ window.openEnquiry = function (productName) {
 }
 
 // Cart Logic
-let cart = [];
+let cart = JSON.parse(localStorage.getItem('g3-cart')) || [];
 
 window.addToCart = function (id) {
     // IMPORTANT: id is passed as string now (MongoDB _id)
@@ -188,6 +210,7 @@ window.addToCart = function (id) {
     // Check duplication
     if (!cart.find(p => p._id === product._id)) {
         cart.push(product);
+        localStorage.setItem('g3-cart', JSON.stringify(cart));
         updateCartModal();
 
         // Show notification
@@ -260,11 +283,122 @@ window.confirmBuy = async function () {
 }
 
 // Wishlist
-window.toggleWishlist = function (element, id) {
-    element.classList.toggle('active');
+window.toggleWishlist = async function (element, id) {
+    try {
+        const res = await fetch('/api/wishlist/toggle', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ productId: id })
+        });
+        const data = await res.json();
+        element.classList.toggle('active', data.saved);
+
+        // Update local wishlist state
+        if (data.saved) wishlist.push(id);
+        else wishlist = wishlist.filter(wid => wid !== id);
+    } catch (err) {
+        console.error("Failed to toggle wishlist", err);
+    }
 }
 
-// Sell Page
+// Global Messaging
+let currentMsgReceiver = null;
+let currentMsgProductId = null;
+
+window.openMessageModal = function (productId, sellerName) {
+    if (!sellerName || sellerName === 'undefined') {
+        alert("Seller information unavailable.");
+        return;
+    }
+    currentMsgReceiver = sellerName;
+    currentMsgProductId = productId;
+    document.getElementById('msg-modal-title').innerText = `Chat with ${sellerName}`;
+    document.getElementById('msg-content').value = "Hi, is this still available?";
+    document.getElementById('message-modal').classList.remove('hidden');
+}
+
+window.closeMessageModal = function () {
+    document.getElementById('message-modal').classList.add('hidden');
+}
+
+window.confirmSendMessage = async function () {
+    const content = document.getElementById('msg-content').value;
+    if (!content) return;
+
+    try {
+        await fetch('/api/messages', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                receiver: currentMsgReceiver,
+                content: content,
+                productId: currentMsgProductId
+            })
+        });
+        alert("Message sent! Thanks for visiting us. 🌸");
+        closeMessageModal();
+    } catch (err) {
+        console.error("Failed to send message", err);
+    }
+}
+
+// Updated Confirm Modal (Unified Buy/Rent/Borrow)
+let actionItem = null;
+window.openConfirmModal = function (id, mode) {
+    actionItem = { id, mode };
+    if (mode === 'buy') openBuyModal(id);
+    else if (mode === 'rent') openRentModal(id);
+    else {
+        alert("Borrow request sent! Please coordinate in chat. Thanks for visiting us! 🌸");
+    }
+}
+
+// Success message updates for confirm functions
+const originalConfirmBuy = window.confirmBuy;
+window.confirmBuy = async function () {
+    await originalConfirmBuy();
+    alert("Order placed! Thanks for visiting us. 🌸");
+}
+
+const originalConfirmRent = window.confirmRent;
+window.confirmRent = function () {
+    originalConfirmRent();
+    alert("Rent request sent! Coordinate in chat. Thanks for visiting us. 🌸");
+}
+
+// Edit Modal Logic
+let currentEditId = null;
+window.openEditModal = function (id, price, desc) {
+    currentEditId = id;
+    document.getElementById('edit-price').value = price;
+    document.getElementById('edit-desc').value = desc || '';
+    document.getElementById('edit-modal').classList.remove('hidden');
+}
+
+window.closeEditModal = function () {
+    document.getElementById('edit-modal').classList.add('hidden');
+}
+
+window.confirmEdit = async function () {
+    const price = document.getElementById('edit-price').value;
+    const description = document.getElementById('edit-desc').value;
+
+    try {
+        await fetch(`/api/products/${currentEditId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ price, description })
+        });
+        alert("Product updated! Thanks for visiting us. 🌸");
+        closeEditModal();
+        await fetchProducts();
+        renderMarket();
+    } catch (err) {
+        console.error("Failed to update product", err);
+    }
+}
+
+// Sell Page Update to use currentUser info
 function initSellPage() {
     const form = document.getElementById('sell-form');
     if (!form) return;
@@ -290,6 +424,14 @@ function initSellPage() {
         }
     });
 
+    // Inject current user info if available
+    if (window.currentUser) {
+        const infoDiv = document.createElement('div');
+        infoDiv.style.cssText = "background: #fdf2f8; padding: 10px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9rem; color: #be185d; border: 1px solid #fbcfe8;";
+        infoDiv.innerHTML = `Posting as: <b>${window.currentUser.name}</b> (Block ${window.currentUser.block}, Room ${window.currentUser.room})`;
+        form.insertBefore(infoDiv, form.firstChild);
+    }
+
     form.addEventListener('submit', async function (e) {
         e.preventDefault();
 
@@ -297,6 +439,7 @@ function initSellPage() {
         const name = document.getElementById('product-name').value;
         const price = document.getElementById('product-price').value;
         const category = document.getElementById('product-category').value;
+        const mode = document.getElementById('product-mode').value;
         const description = document.getElementById('product-desc').value;
 
         // Construct product object
@@ -304,9 +447,15 @@ function initSellPage() {
             name,
             price,
             category,
+            mode,
             description,
             image: currentImageBase64 || './images/fast-fashion.jpeg', // Default or uploaded
-            sold: false
+            sold: false,
+            seller: {
+                name: window.currentUser?.name || 'Unknown',
+                hostel: window.currentUser?.block || '?',
+                room: window.currentUser?.room || '?'
+            }
         };
 
         if (!name || !price) {
@@ -314,11 +463,13 @@ function initSellPage() {
             return;
         }
 
-        await saveProduct(product);
-        alert("Posted!");
-        window.location.href = 'market.html'; // Assuming market.html is served at /market route in browser usually, but with EJS it's just /market
-        // If SPA navigation isn't set up, full reload to /market:
-        window.location.href = '/market';
+        try {
+            await saveProduct(product);
+            alert("Posted successfully! Thanks for visiting us. 🌸");
+            window.location.href = '/market';
+        } catch (err) {
+            alert("Error: " + err.message);
+        }
     });
 }
 
@@ -328,6 +479,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await fetchProducts();
 
     renderMarket();
+    updateCartModal(); // Init cart from storage
     initFilters();
     initSellPage();
 });

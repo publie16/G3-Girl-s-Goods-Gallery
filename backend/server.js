@@ -1,9 +1,11 @@
 const express = require("express");
 const path = require("path");
+require("dotenv").config(); // Load environment variables
 const session = require("express-session");
 const connectDB = require("./db");
 const User = require("./models/User");
 const Product = require("./models/Product");
+const Message = require("./models/Message");
 
 const app = express();
 const PORT = 3000;
@@ -76,7 +78,9 @@ app.post("/login", async (req, res) => {
     // ✅ SAVE USER IN SESSION
     req.session.user = {
       name: user.name,
-      id: user._id
+      id: user._id,
+      block: user.block,
+      room: user.room
     };
 
     // ✅ REDIRECT TO MARKET
@@ -94,7 +98,22 @@ app.get("/market", (req, res) => {
   }
 
   res.render("market.ejs", {
-    name: req.session.user.name
+    name: req.session.user.name,
+    block: req.session.user.block,
+    room: req.session.user.room
+  });
+});
+
+// Sell page
+app.get("/sell", (req, res) => {
+  if (!req.session.user) {
+    return res.redirect("/login");
+  }
+
+  res.render("sell.ejs", {
+    name: req.session.user.name,
+    block: req.session.user.block,
+    room: req.session.user.room
   });
 });
 
@@ -117,7 +136,8 @@ app.post("/api/products", async (req, res) => {
     await newProduct.save();
     res.json(newProduct);
   } catch (err) {
-    res.status(500).json({ error: "Failed to save product" });
+    console.error("❌ Product Save Error:", err);
+    res.status(500).json({ error: "Failed to save product", details: err.message });
   }
 });
 
@@ -129,6 +149,103 @@ app.patch("/api/products/:id/sold", async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: "Failed to update product" });
   }
+});
+
+// Edit Product Price/Details
+app.patch("/api/products/:id", async (req, res) => {
+  if (!req.session.user) return res.status(401).json({ error: "Unauthorized" });
+  try {
+    const product = await Product.findById(req.params.id);
+    // Check ownership if possible (using seller name for now)
+    if (product.seller.name !== req.session.user.name) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    const updatedProduct = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json(updatedProduct);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to update product" });
+  }
+});
+
+// ========= WISHLIST API =========
+app.post("/api/wishlist/toggle", async (req, res) => {
+  if (!req.session.user) return res.status(401).json({ error: "Unauthorized" });
+
+  const { productId } = req.body;
+  try {
+    const user = await User.findById(req.session.user.id);
+    const index = user.wishlist.indexOf(productId);
+
+    if (index === -1) {
+      user.wishlist.push(productId);
+      await user.save();
+      res.json({ saved: true });
+    } else {
+      user.wishlist.splice(index, 1);
+      await user.save();
+      res.json({ saved: false });
+    }
+  } catch (err) {
+    res.status(500).json({ error: "Failed to update wishlist" });
+  }
+});
+
+app.get("/api/user/wishlist", async (req, res) => {
+  if (!req.session.user) return res.json([]);
+  try {
+    const user = await User.findById(req.session.user.id);
+    res.json(user.wishlist);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch wishlist" });
+  }
+});
+
+app.get("/api/user/me", (req, res) => {
+  if (!req.session.user) return res.status(401).json({ error: "Unauthorized" });
+  res.json(req.session.user);
+});
+
+// ========= MESSAGING API =========
+app.post("/api/messages", async (req, res) => {
+  if (!req.session.user) return res.status(401).json({ error: "Unauthorized" });
+  try {
+    const { receiver, content, productId } = req.body;
+    const newMessage = new Message({
+      sender: req.session.user.name, // Using name for simplicity
+      senderId: req.session.user.id,
+      receiver,
+      content,
+      productId
+    });
+    await newMessage.save();
+    res.json({ success: true, message: "Sent!" });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to send message" });
+  }
+});
+
+app.get("/api/messages", async (req, res) => {
+  if (!req.session.user) return res.redirect('/login');
+  try {
+    const messages = await Message.find({
+      $or: [
+        { receiver: req.session.user.name },
+        { sender: req.session.user.name }
+      ]
+    }).sort({ timestamp: -1 });
+
+    // Group by conversation partner if needed, but for MVP listing all is fine
+    res.json(messages);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch messages" });
+  }
+});
+
+// Render Messages Page
+app.get("/messages", (req, res) => {
+  if (!req.session.user) return res.redirect("/login");
+  res.render("messages.ejs", { name: req.session.user.name });
 });
 
 // ========= START SERVER =========

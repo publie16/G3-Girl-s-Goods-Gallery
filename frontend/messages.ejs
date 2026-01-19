@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messages - Girls Goods Gallery</title>
+    <link rel="stylesheet" href="/styles/landingPage.css">
+    <link rel="stylesheet" href="/styles/market.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap"
+        rel="stylesheet">
+    <style>
+        .messages-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        }
+
+        .message-card {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #eee;
+            transition: transform 0.2s;
+        }
+
+        .message-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #d63384;
+        }
+
+        .message-time {
+            font-size: 0.8rem;
+            color: #888;
+            font-weight: 400;
+        }
+
+        .message-content {
+            color: #444;
+            line-height: 1.5;
+        }
+
+        .no-messages {
+            text-align: center;
+            padding: 40px;
+            color: #888;
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <div id="logo">G3</div>
+        <a href="/">HOME</a>
+        <a href="/market">MARKET</a>
+        <a href="/messages" class="active">MESSAGES</a>
+        <a href="/sell">SELL</a>
+        <span class="user-profile" style="margin-left:auto;">
+            <%= name %>
+        </span>
+    </nav>
+
+    <main class="messages-container">
+        <h1>Your Inbox</h1>
+        <div id="messages-list">
+            <!-- Messages will be loaded here -->
+            <p class="no-messages">Loading messages...</p>
+        </div>
+    </main>
+
+    <script>
+        async function fetchMessages() {
+            try {
+                const res = await fetch('/api/messages');
+                const messages = await res.json();
+                const list = document.getElementById('messages-list');
+
+                if (messages.length === 0) {
+                    list.innerHTML = '<p class="no-messages">No messages yet. Start a conversation in the market!</p>';
+                    return;
+                }
+
+                list.innerHTML = messages.map(msg => `
+                    <div class="message-card">
+                        <div class="message-header">
+                            <span>From: ${msg.sender}</span>
+                            <span class="message-time">${new Date(msg.timestamp).toLocaleString()}</span>
+                        </div>
+                        <div class="message-content">${msg.content}</div>
+                        <div class="message-actions" style="margin-top:10px; display:flex; gap:10px;">
+                            <button onclick="openReply('${msg.sender}')" style="background:#d63384; color:white; border:none; padding:5px 15px; border-radius:5px; cursor:pointer; font-family:'Outfit';">Reply</button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error("Failed to load messages", err);
+            }
+        }
+
+        let replyReceiver = null;
+        function openReply(sender) {
+            replyReceiver = sender;
+            const replyBox = document.getElementById('reply-box');
+            replyBox.classList.remove('hidden');
+            document.getElementById('reply-title').innerText = `Reply to ${sender}`;
+            document.getElementById('reply-text').focus();
+        }
+
+        function closeReply() {
+            document.getElementById('reply-box').classList.add('hidden');
+        }
+
+        async function sendReply() {
+            const content = document.getElementById('reply-text').value;
+            if (!content) return;
+            try {
+                await fetch('/api/messages', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ receiver: replyReceiver, content: content })
+                });
+                alert("Reply sent! Thanks for visiting us. 🌸");
+                document.getElementById('reply-text').value = '';
+                closeReply();
+                fetchMessages();
+            } catch (err) {
+                console.error("Failed to send reply", err);
+            }
+        }
+        fetchMessages();
+    </script>
+
+    <!-- Reply Popup -->
+    <div id="reply-box" class="modal hidden">
+        <div class="modal-content">
+            <h2 id="reply-title">Reply</h2>
+            <textarea id="reply-text" rows="4"
+                style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd; margin-top:10px;"></textarea>
+            <div class="modal-actions">
+                <button onclick="sendReply()" class="btn-confirm">Send Reply</button>
+                <button onclick="closeReply()" class="btn-cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

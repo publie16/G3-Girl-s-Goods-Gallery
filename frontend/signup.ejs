@@ -62,7 +62,14 @@
 
                 <div class="form-group">
                     <label>Password</label>
-                    <input type="password" name="password" placeholder="Create password" required>
+                    <div style="position:relative;">
+                        <input type="password" name="password" id="password" placeholder="Create password" required
+                            style="width:100%; padding-right:40px;">
+                        <span onclick="togglePassword()"
+                            style="position:absolute; right:12px; top:28%; cursor:pointer; font-size:1.2rem;">
+                            👁️
+                        </span>
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -78,10 +85,12 @@
                 <div class="form-group">
                     <label>Block Name</label>
                     <div style="display: flex; gap: 20px; margin-top: 5px;">
-                        <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;">
+                        <label
+                            style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;">
                             <input type="radio" name="block" value="B" required> Block B
                         </label>
-                        <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;">
+                        <label
+                            style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;">
                             <input type="radio" name="block" value="C"> Block C
                         </label>
                     </div>
@@ -102,5 +111,14 @@
         </div>
     </main>
 
+    <script>
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+        }
+    </script>
+
 </body>
+
 </html>
